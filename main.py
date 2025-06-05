@@ -1,1 +1,0 @@
-# nwm coś tu bemdzie
