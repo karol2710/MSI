@@ -18,9 +18,7 @@ import pandas as pd
 
 # df.to_csv("data_V2.csv", index=False)
 
-data = np.loadtxt('data_V2.csv', dtype = 'object', delimiter = ',')
-
-newData = np.delete(data, 0, 0)
+newData = np.loadtxt('data_V2.csv', dtype = 'object', delimiter = ',')
 
 size_map = {
     "tiny": 1,
@@ -45,7 +43,8 @@ type_map = {
     "monstrosity": 11,
     "ooze": 12,
     "plant": 13,
-    "undead": 14
+    "undead": 14,
+    "swarm": 15
 }
 
 alignment_map = {
@@ -59,7 +58,13 @@ alignment_map = {
     "neutral evil": 8,
     "chaotic evil": 9,
     "any alignment": 10,
-    "unaligned": 11
+    "unaligned": 11,
+    "any evil alignment": 12,
+    "any non-good alignment": 13,
+    "any non-lawful alignment": 14,
+    "any chaotic alignment": 15,
+    "neutral good (50 %) or neutral evil (50 %)": 16,
+    "chaotic good (75 %) or neutral evil (25 %)": 16
 }
 
 newData[:, 0] = [size_map.get(val, val) for val in newData[:, 0]]
