@@ -27,6 +27,7 @@ af = pd.read_csv("clean_data.csv", dtype=float)
 # statystyki opisowe
 print(af.describe())
 
+af.describe().to_csv("opis_danych.csv")
 # wizualizacja
 
 print(af.dtypes)
@@ -36,8 +37,28 @@ plt.xlabel("Typ")
 plt.ylabel("Liczba próbek")
 plt.show()
 
-sns.heatmap(af.corr(numeric_only=True), annot=True, cmap="coolwarm")
-plt.title("Macierz korelacji")
+corr = af.corr(numeric_only=True)
+
+plt.figure(figsize=(12, 10))
+
+ax = sns.heatmap(
+    corr,
+    annot=False,
+    cmap="coolwarm",
+    square=True,
+    linewidths=0.5,
+    cbar_kws={"shrink": 0.8}
+)
+
+# Wymuś pokazanie wszystkich etykiet na osiach
+ax.set_xticks(range(len(corr.columns)))
+ax.set_xticklabels(corr.columns, ha='right')
+
+ax.set_yticks(range(len(corr.index)))
+ax.set_yticklabels(corr.index, rotation=0)
+
+plt.title("Macierz korelacji", fontsize=14)
+plt.tight_layout()
 plt.show()
 
 af.hist(bins=20, figsize=(15,10))

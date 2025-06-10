@@ -62,7 +62,7 @@ X_rfe = selector.fit_transform(X_rfe, y_rfe)
 
 
 selected_rfe_columns = selector.get_support(indices=True)
-# print("Wybrane kolumny przez RFE:", selected_rfe_columns)
+print("Wybrane kolumny przez RFE:", selected_rfe_columns)
 
 
 
