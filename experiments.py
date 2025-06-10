@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 np.random.seed(12345)
 
@@ -103,4 +105,58 @@ cm_rfe = confusion_matrix(y_test_r, y_pred_r)
 disp2 = ConfusionMatrixDisplay(confusion_matrix=cm_rfe)
 disp2.plot(cmap='Greens')
 plt.title("Macierz pomyłek – RFE")
+plt.show()
+
+# ========================
+# Eksperyment nr 2
+# ========================
+
+X_train, X_test, y_train, y_test = train_test_split(X_rfe, y_rfe, test_size=test_size, stratify=y_rfe, random_state=12345)
+
+# ========================
+# Klasyfikator KNN
+# ========================
+clf_knn = KNeighborsClassifier(n_neighbors=k)
+clf_knn.fit(X_train, y_train)
+y_pred_knn = clf_knn.predict(X_test)
+
+print("\n🔹 KNN")
+print("Accuracy:", accuracy_score(y_test, y_pred_knn))
+print("Macro F1:", f1_score(y_test, y_pred_knn, average='macro'))
+cm_knn = confusion_matrix(y_test, y_pred_knn)
+disp_knn = ConfusionMatrixDisplay(confusion_matrix=cm_knn)
+disp_knn.plot(cmap='Blues')
+plt.title("Macierz pomyłek – KNN")
+plt.show()
+
+# ========================
+# Klasyfikator MLP
+# ========================
+clf_mlp = MLPClassifier(hidden_layer_sizes=(100,), max_iter=500, random_state=12345)
+clf_mlp.fit(X_train, y_train)
+y_pred_mlp = clf_mlp.predict(X_test)
+
+print("\n🔸 MLP")
+print("Accuracy:", accuracy_score(y_test, y_pred_mlp))
+print("Macro F1:", f1_score(y_test, y_pred_mlp, average='macro'))
+cm_mlp = confusion_matrix(y_test, y_pred_mlp)
+disp_mlp = ConfusionMatrixDisplay(confusion_matrix=cm_mlp)
+disp_mlp.plot(cmap='Oranges')
+plt.title("Macierz pomyłek – MLP")
+plt.show()
+
+# ========================
+# Klasyfikator Random Forest
+# ========================
+clf_rf = RandomForestClassifier(n_estimators=100, random_state=12345)
+clf_rf.fit(X_train, y_train)
+y_pred_rf = clf_rf.predict(X_test)
+
+print("\n🔹 Random Forest")
+print("Accuracy:", accuracy_score(y_test, y_pred_rf))
+print("Macro F1:", f1_score(y_test, y_pred_rf, average='macro'))
+cm_rf = confusion_matrix(y_test, y_pred_rf)
+disp_rf = ConfusionMatrixDisplay(confusion_matrix=cm_rf)
+disp_rf.plot(cmap='Greens')
+plt.title("Macierz pomyłek – Random Forest")
 plt.show()
