@@ -121,7 +121,8 @@ classifiers = {
 }
 
 rkfss = RepeatedKFold(n_splits=2, n_repeats=5)
-results = np.zeros((10, len(classifiers), 3))
+results = np.zeros((10, len(classifiers), 2))
+confusion_matrices = {clf_name: [] for clf_name in classifiers}
 for i, (train_index, test_index) in enumerate(rkfss.split(X, y)):
     #pętla ta przechodzi przez klasyfikatory
     for clf_idx, (clf_name, clf) in enumerate(classifiers.items()):
@@ -135,33 +136,30 @@ for i, (train_index, test_index) in enumerate(rkfss.split(X, y)):
         # obliczenia dokładnośći dla danego klasyfikatora i zapisanie wyniku w macierzy wyników
         results[i, clf_idx, 0] = accuracy_score(y_test_cv, y_pred_cv)
         results[i, clf_idx, 1] = f1_score(y_test_cv, y_pred_cv, average='macro')
-        results[i, clf_idx, 2] = confusion_matrix(y_test_cv, y_pred_cv)
+        cm = confusion_matrix(y_test_cv, y_pred_cv, labels=np.unique(y))
+        confusion_matrices[clf_name].append(cm)
 
 
 
 print("\n🔹 KNN")
 print("Accuracy:", mean(results[:,0,0]))
 print("Macro F1:", mean(results[:,0,1]))
-cm_knn = mean(results[:,0,2])
-disp_knn = ConfusionMatrixDisplay(confusion_matrix=cm_knn)
-disp_knn.plot(cmap='Blues')
-plt.title("Macierz pomyłek – KNN")
-plt.show()
+
 
 print("\n🔸 MLP")
 print("Accuracy:", mean(results[:,1,0]))
 print("Macro F1:", mean(results[:,1,1]))
-cm_mlp = mean(results[:,1,2])
-disp_mlp = ConfusionMatrixDisplay(confusion_matrix=cm_mlp)
-disp_mlp.plot(cmap='Oranges')
-plt.title("Macierz pomyłek – MLP")
-plt.show()
+
 
 print("\n🔹 Random Forest")
 print("Accuracy:", mean(results[:,2,0]))
 print("Macro F1:", mean(results[:,2,1]))
-cm_rf = mean(results[:,2,2])
-disp_rf = ConfusionMatrixDisplay(confusion_matrix=cm_rf)
-disp_rf.plot(cmap='Greens')
-plt.title("Macierz pomyłek – Random Forest")
-plt.show()
+
+for clf_name, cm_list in confusion_matrices.items():
+    avg_cm = np.mean(cm_list, axis=0)
+    avg_cm = np.round(avg_cm).astype(int)
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=avg_cm)
+    disp.plot(cmap='Blues')
+    plt.title(f"Macierz pomyłek – {clf_name}")
+    plt.show()
