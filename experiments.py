@@ -1,7 +1,5 @@
 import numpy as np
-import pandas as pd
 from imblearn.over_sampling import SMOTE
-from collections import Counter
 from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -10,6 +8,8 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, Confusio
 import matplotlib.pyplot as plt
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RepeatedKFold
+from statistics import mean
 
 np.random.seed(12345)
 
@@ -111,51 +111,56 @@ plt.show()
 # Eksperyment nr 2
 # ========================
 
-X_train, X_test, y_train, y_test = train_test_split(X_rfe, y_rfe, test_size=test_size, stratify=y_rfe, random_state=12345)
+X_train_cv, X_test_cv, y_train_cv, y_test_cv = train_test_split(X_rfe, y_rfe, test_size=test_size, stratify=y_rfe, random_state=12345)
 
-# ========================
-# Klasyfikator KNN
-# ========================
-clf_knn = KNeighborsClassifier(n_neighbors=k)
-clf_knn.fit(X_train, y_train)
-y_pred_knn = clf_knn.predict(X_test)
+
+classifiers = {
+    'KNN': KNeighborsClassifier(n_neighbors=k),
+    'MPL': MLPClassifier(hidden_layer_sizes=(100,), max_iter=500, random_state=12345),
+    'Random Forest' : RandomForestClassifier(n_estimators=100, random_state=12345)
+}
+
+rkfss = RepeatedKFold(n_splits=2, n_repeats=5)
+results = np.zeros((10, len(classifiers), 3))
+for i, (train_index, test_index) in enumerate(rkfss.split(X, y)):
+    #pętla ta przechodzi przez klasyfikatory
+    for clf_idx, (clf_name, clf) in enumerate(classifiers.items()):
+
+        # trening klasyfikatora
+        clf.fit(X_train_cv, y_train_cv)
+            
+        # predykcja dla danego klasyfikatora
+        y_pred_cv = clf.predict(X_test_cv)
+                    
+        # obliczenia dokładnośći dla danego klasyfikatora i zapisanie wyniku w macierzy wyników
+        results[i, clf_idx, 0] = accuracy_score(y_test_cv, y_pred_cv)
+        results[i, clf_idx, 1] = f1_score(y_test_cv, y_pred_cv, average='macro')
+        results[i, clf_idx, 2] = confusion_matrix(y_test_cv, y_pred_cv)
+
+
 
 print("\n🔹 KNN")
-print("Accuracy:", accuracy_score(y_test, y_pred_knn))
-print("Macro F1:", f1_score(y_test, y_pred_knn, average='macro'))
-cm_knn = confusion_matrix(y_test, y_pred_knn)
+print("Accuracy:", mean(results[:,0,0]))
+print("Macro F1:", mean(results[:,0,1]))
+cm_knn = mean(results[:,0,2])
 disp_knn = ConfusionMatrixDisplay(confusion_matrix=cm_knn)
 disp_knn.plot(cmap='Blues')
 plt.title("Macierz pomyłek – KNN")
 plt.show()
 
-# ========================
-# Klasyfikator MLP
-# ========================
-clf_mlp = MLPClassifier(hidden_layer_sizes=(100,), max_iter=500, random_state=12345)
-clf_mlp.fit(X_train, y_train)
-y_pred_mlp = clf_mlp.predict(X_test)
-
 print("\n🔸 MLP")
-print("Accuracy:", accuracy_score(y_test, y_pred_mlp))
-print("Macro F1:", f1_score(y_test, y_pred_mlp, average='macro'))
-cm_mlp = confusion_matrix(y_test, y_pred_mlp)
+print("Accuracy:", mean(results[:,1,0]))
+print("Macro F1:", mean(results[:,1,1]))
+cm_mlp = mean(results[:,1,2])
 disp_mlp = ConfusionMatrixDisplay(confusion_matrix=cm_mlp)
 disp_mlp.plot(cmap='Oranges')
 plt.title("Macierz pomyłek – MLP")
 plt.show()
 
-# ========================
-# Klasyfikator Random Forest
-# ========================
-clf_rf = RandomForestClassifier(n_estimators=100, random_state=12345)
-clf_rf.fit(X_train, y_train)
-y_pred_rf = clf_rf.predict(X_test)
-
 print("\n🔹 Random Forest")
-print("Accuracy:", accuracy_score(y_test, y_pred_rf))
-print("Macro F1:", f1_score(y_test, y_pred_rf, average='macro'))
-cm_rf = confusion_matrix(y_test, y_pred_rf)
+print("Accuracy:", mean(results[:,2,0]))
+print("Macro F1:", mean(results[:,2,1]))
+cm_rf = mean(results[:,2,2])
 disp_rf = ConfusionMatrixDisplay(confusion_matrix=cm_rf)
 disp_rf.plot(cmap='Greens')
 plt.title("Macierz pomyłek – Random Forest")
