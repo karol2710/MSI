@@ -4,11 +4,11 @@ from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import balanced_accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RepeatedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 from statistics import mean
 
 np.random.seed(12345)
@@ -79,7 +79,7 @@ clf_manual.fit(X_train_m, y_train_m)
 y_pred_m = clf_manual.predict(X_test_m)
 
 print("\n📘 Wyniki – RĘCZNA selekcja")
-print("Accuracy:", accuracy_score(y_test_m, y_pred_m))
+print("Balanced Accuracy:", balanced_accuracy_score(y_test_m, y_pred_m))
 print("Macro F1:", f1_score(y_test_m, y_pred_m, average='macro'))
 cm_manual = confusion_matrix(y_test_m, y_pred_m)
 
@@ -98,7 +98,7 @@ clf_rfe.fit(X_train_r, y_train_r)
 y_pred_r = clf_rfe.predict(X_test_r)
 
 print("\n📗 Wyniki – RFE selekcja")
-print("Accuracy:", accuracy_score(y_test_r, y_pred_r))
+print("Balanced Accuracy:", balanced_accuracy_score(y_test_r, y_pred_r))
 print("Macro F1:", f1_score(y_test_r, y_pred_r, average='macro'))
 cm_rfe = confusion_matrix(y_test_r, y_pred_r)
 
@@ -120,7 +120,7 @@ classifiers = {
     'Random Forest' : RandomForestClassifier(n_estimators=100, random_state=12345)
 }
 
-rkfss = RepeatedKFold(n_splits=2, n_repeats=5)
+rkfss = RepeatedStratifiedKFold(n_splits=2, n_repeats=5, random_state=12345)
 results = np.zeros((10, len(classifiers), 2))
 confusion_matrices = {clf_name: [] for clf_name in classifiers}
 for i, (train_index, test_index) in enumerate(rkfss.split(X, y)):
@@ -134,25 +134,24 @@ for i, (train_index, test_index) in enumerate(rkfss.split(X, y)):
         y_pred_cv = clf.predict(X_test_cv)
                     
         # obliczenia dokładnośći dla danego klasyfikatora i zapisanie wyniku w macierzy wyników
-        results[i, clf_idx, 0] = accuracy_score(y_test_cv, y_pred_cv)
+        results[i, clf_idx, 0] = balanced_accuracy_score(y_test_cv, y_pred_cv)
         results[i, clf_idx, 1] = f1_score(y_test_cv, y_pred_cv, average='macro')
         cm = confusion_matrix(y_test_cv, y_pred_cv, labels=np.unique(y))
         confusion_matrices[clf_name].append(cm)
 
 
-
 print("\n🔹 KNN")
-print("Accuracy:", mean(results[:,0,0]))
+print("Balanced Accuracy:", mean(results[:,0,0]))
 print("Macro F1:", mean(results[:,0,1]))
 
 
 print("\n🔸 MLP")
-print("Accuracy:", mean(results[:,1,0]))
+print("Balanced Accuracy:", mean(results[:,1,0]))
 print("Macro F1:", mean(results[:,1,1]))
 
 
 print("\n🔹 Random Forest")
-print("Accuracy:", mean(results[:,2,0]))
+print("Balanced Accuracy:", mean(results[:,2,0]))
 print("Macro F1:", mean(results[:,2,1]))
 
 for clf_name, cm_list in confusion_matrices.items():
